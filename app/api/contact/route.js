@@ -41,6 +41,7 @@ export async function POST(request) {
       });
       return NextResponse.json({ ok: true });
     } catch (err) {
+      console.error('Contact form: email send failed —', err.message);
       if (redisConfigured()) return NextResponse.json({ ok: true }); // stored above
       return NextResponse.json({ error: 'Could not send your message right now. Please try again later.' }, { status: 502 });
     }
