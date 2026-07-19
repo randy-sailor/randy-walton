@@ -88,6 +88,9 @@ export default function Dashboard({ config }) {
         <button type="button" className={`chip${tab === 'send' ? ' active' : ''}`} onClick={() => setTab('send')}>
           SEND UPDATE
         </button>
+        <button type="button" className={`chip${tab === 'inquiries' ? ' active' : ''}`} onClick={() => setTab('inquiries')}>
+          INQUIRIES
+        </button>
         <button type="button" className="chip" style={{ marginLeft: 'auto' }} onClick={logout}>
           SIGN OUT
         </button>
@@ -96,6 +99,7 @@ export default function Dashboard({ config }) {
       {tab === 'essays' && <EssaysTab />}
       {tab === 'subscribers' && <SubscribersTab />}
       {tab === 'send' && <SendTab />}
+      {tab === 'inquiries' && <InquiriesTab />}
     </>
   );
 }
@@ -400,6 +404,72 @@ function SubscribersTab() {
         )}
       </div>
     </>
+  );
+}
+
+/* --- Inquiries (contact form submissions) ----------------------------------- */
+
+function InquiriesTab() {
+  const [messages, setMessages] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    api('/api/admin/inquiries')
+      .then((d) => setMessages(d.messages))
+      .catch((e) => setError(e.message));
+  }, []);
+
+  return (
+    <div className="admin-panel">
+      <h2>Contact form inquiries{messages ? ` (${messages.length})` : ''}</h2>
+      <p className="admin-note">
+        Every submission is stored here, even when email delivery fails — so nothing is ever lost.
+        The status column shows whether the email notification reached your inbox, and if not, why.
+      </p>
+      {error && <div className="admin-msg error">{error}</div>}
+      {!messages ? (
+        <p className="admin-note">Loading…</p>
+      ) : messages.length === 0 ? (
+        <p className="admin-note" style={{ marginTop: 16 }}>No inquiries yet.</p>
+      ) : (
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>RECEIVED</th>
+              <th>FROM</th>
+              <th>TOPIC</th>
+              <th>MESSAGE</th>
+              <th>EMAIL STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {messages.map((m, i) => (
+              <tr key={i}>
+                <td style={{ whiteSpace: 'nowrap' }}>{m.at ? new Date(m.at).toLocaleString() : '—'}</td>
+                <td>
+                  {m.name}
+                  <br />
+                  <a href={`mailto:${m.email}`} style={{ color: 'var(--gold-light)' }}>
+                    {m.email}
+                  </a>
+                </td>
+                <td>{m.topic}</td>
+                <td style={{ whiteSpace: 'pre-wrap', maxWidth: 420 }}>{m.message}</td>
+                <td>
+                  {m.emailed === true ? (
+                    <span style={{ color: '#3d6b35' }}>Delivered ✓</span>
+                  ) : m.emailed === false ? (
+                    <span style={{ color: '#a4392f' }}>Failed{m.emailError ? ` — ${m.emailError}` : ''}</span>
+                  ) : (
+                    '—'
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
   );
 }
 

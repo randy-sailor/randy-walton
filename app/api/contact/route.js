@@ -23,8 +23,8 @@ export async function POST(request) {
     return NextResponse.json({ error: 'Please fill in your name, a valid email, and a message.' }, { status: 400 });
   }
 
-  await saveContactMessage({ name, email, topic, message });
-
+  let emailed = false;
+  let emailError = '';
   if (resendConfigured()) {
     try {
       await sendOne({
@@ -39,15 +39,20 @@ export async function POST(request) {
             `<p style="margin:1.6em 0 0;font-family:Georgia,serif;font-size:15px;color:#5b6270;">— ${escapeHtml(name)} &lt;${escapeHtml(email)}&gt;</p>`,
         }),
       });
-      return NextResponse.json({ ok: true });
+      emailed = true;
     } catch (err) {
+      emailError = err.message;
       console.error('Contact form: email send failed —', err.message);
-      if (redisConfigured()) return NextResponse.json({ ok: true }); // stored above
-      return NextResponse.json({ error: 'Could not send your message right now. Please try again later.' }, { status: 502 });
     }
+  } else {
+    emailError = 'Email is not configured (RESEND_API_KEY missing).';
   }
 
-  if (redisConfigured()) return NextResponse.json({ ok: true });
+  // Every submission is stored (with its delivery status) so nothing is
+  // ever lost and the admin Inquiries tab can show why a send failed.
+  await saveContactMessage({ name, email, topic, message, emailed, emailError: emailError || undefined });
+
+  if (emailed || redisConfigured()) return NextResponse.json({ ok: true });
   return NextResponse.json(
     { error: 'The contact form is not configured yet. Please email me directly.' },
     { status: 503 }
