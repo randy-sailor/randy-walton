@@ -16,8 +16,13 @@ export async function POST(request) {
   const topic = String(body.topic || 'Something else').trim().slice(0, 100);
   const message = String(body.message || '').trim().slice(0, 10000);
 
-  // Honeypot: bots fill every field; pretend success and drop it.
-  if (String(body.company || '').trim()) return NextResponse.json({ ok: true });
+  // Honeypot: bots fill every field. Pretend success, skip the email, but
+  // still store the submission flagged as spam so false positives are
+  // recoverable from the admin Inquiries tab instead of silently lost.
+  if (String(body.company || '').trim()) {
+    await saveContactMessage({ name, email, topic, message, spam: true });
+    return NextResponse.json({ ok: true });
+  }
 
   if (!name || !message || !isEmail(email)) {
     return NextResponse.json({ error: 'Please fill in your name, a valid email, and a message.' }, { status: 400 });

@@ -72,10 +72,11 @@ export default function ContactForm() {
         <span className="field-label">MESSAGE</span>
         <textarea value={form.message} onChange={set('message')} rows={6} />
       </label>
+      {/* Honeypot: no name/id/label so browser autofill never touches it;
+          only bots that blindly fill every input will set it. */}
       <input
         value={form.company}
         onChange={set('company')}
-        name="company"
         tabIndex={-1}
         autoComplete="off"
         aria-hidden="true"

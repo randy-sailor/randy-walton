@@ -456,7 +456,9 @@ function InquiriesTab() {
                 <td>{m.topic}</td>
                 <td style={{ whiteSpace: 'pre-wrap', maxWidth: 420 }}>{m.message}</td>
                 <td>
-                  {m.emailed === true ? (
+                  {m.spam ? (
+                    <span style={{ color: 'var(--kicker-light)' }}>Skipped (spam filter)</span>
+                  ) : m.emailed === true ? (
                     <span style={{ color: '#3d6b35' }}>Delivered ✓</span>
                   ) : m.emailed === false ? (
                     <span style={{ color: '#a4392f' }}>Failed{m.emailError ? ` — ${m.emailError}` : ''}</span>
