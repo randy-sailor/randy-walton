@@ -1,4 +1,5 @@
 import { Newsreader, Archivo } from 'next/font/google';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import { SITE_URL } from '@/lib/content';
 import './globals.css';
 
@@ -27,7 +28,10 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${newsreader.variable} ${archivo.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <SpeedInsights />
+      </body>
     </html>
   );
 }
